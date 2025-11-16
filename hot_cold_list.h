@@ -176,6 +176,7 @@ public:
             memcpy((void*)(newBuffer + copyOffset), (void*)m_Blocks[i].Buffer, m_Blocks[i].Size * sizeof(TElement));
             m_Blocks[i].Size = copyOffset;
             copyOffset += m_Blocks[i].Size;
+            free(m_Blocks[i].Buffer);
         }
 
         // update buffer regions
