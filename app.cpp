@@ -36,9 +36,18 @@ int main()
     // read the data
     {
         int* buffer = myList.GetBuffer(buffer1);
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < 16; i++)
+        {
+            std::cout << buffer[i] << std::endl;
+        }
+
+        buffer = myList.GetBuffer(buffer2);
+        for (int i = 0; i < 16; i++)
         {
             std::cout << buffer[i] << std::endl;
         }
     }
+
+    myList.FreeBuffer(buffer1);
+    myList.FreeBuffer(buffer2);
 }

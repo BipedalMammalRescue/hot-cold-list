@@ -32,19 +32,19 @@ private:
 public:
     struct AllocationId
     {
-        int AllocationId;
-        int AllocationOffset;
+        int RegionId;
+        int RegionOffset;
     };
 
 
     TElement* GetBuffer(AllocationId id)
     {
-        BlockRegion& allocation = m_BufferRegions[id.AllocationId];
+        BlockRegion& allocation = m_BufferRegions[id.RegionId];
         Block& block = m_Blocks[allocation.BlockId];
 
         TElement* atlasBuffer = block.Buffer;
         TElement* allocationBegin = atlasBuffer + allocation.Offset;
-        TElement* buffer = allocationBegin + id.AllocationOffset;
+        TElement* buffer = allocationBegin + id.RegionOffset;
 
         return buffer;
     }
@@ -119,7 +119,7 @@ public:
 
     void MakeBufferCold(AllocationId bufferId)
     {
-        BlockRegion& allocation = m_BufferRegions[bufferId.AllocationId];
+        BlockRegion& allocation = m_BufferRegions[bufferId.RegionId];
         Block& block = m_Blocks[allocation.BlockId];
 
         assert(block.HotBuffers > 0);
@@ -197,17 +197,32 @@ public:
     
     void FreeBuffer(AllocationId bufferId)
     {
-        BlockRegion& allocation = m_BufferRegions[bufferId];
+        BlockRegion& allocation = m_BufferRegions[bufferId.RegionId];
         Block& block = m_Blocks[allocation.BlockId];
 
         assert(block.TotalBuffers > 0);
         block.TotalBuffers --;
 
         // deallocate this block
-        if (block.TotalBuffers == 0)
+        if (block.TotalBuffers > 0)
+            return;
+
+        free(block.Buffer);
+        
+        // unlink that block
+        for (int i = allocation.BlockId + 1; i < m_Blocks.size(); i++)
         {
-            free(block.Buffer);
-            block = Block::Default;
+            m_Blocks[i - 1] = m_Blocks[i];
+        }
+        m_Blocks.resize(m_Blocks.size() - 1);
+
+        // update allocated regions
+        for (BlockRegion& bufferRegion : m_BufferRegions)
+        {
+            if (bufferRegion.BlockId > allocation.BlockId)
+            {
+                bufferRegion.BlockId --;
+            }
         }
     }
 };
