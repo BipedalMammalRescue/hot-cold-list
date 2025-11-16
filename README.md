@@ -50,3 +50,8 @@ After either consolidation or deallocation, the list needs to scan all allocated
 This proposed implementation of the hot-cold list has several drawbacks, most obviously that during consolidation and deallocation the list needs to scan the entire list of allocated regions and reassign their values.
 This narrows its use case, namely when the event that triggers such memory-realignment actions are dominated by some other obvious dominating factor, such as disk reads or network synchronization.
 Therefore, I'm expecting it to work fine for use cases such as managing disk IO load buffers in a game engine where resources are loaded in asynchronously.
+
+## Limitations due to this project being a demo
+
+I used `malloc`/`realloc` and `std::vector<>` directly in the code.
+They aren't supposed to be present in a production setting, as you'd be using custom allocators to manage these buffer creations, and since solutions for an allocator that only does buffers and buffer resizes is very well known (e.g. [this bigsquid blog post](https://bitsquid.blogspot.com/2015/08/allocation-adventures-3-buddy-allocator.html)), I opted for not including an allocator in this repo.
